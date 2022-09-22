@@ -1,0 +1,71 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  //provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  email       String    @unique
+  name        String
+  status      Status    @default(ACTIVE)
+  Transaction Transaction[]
+
+  @@index([status])
+}
+
+model Merchant {
+  id            Int       @id @default(autoincrement())
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  name          String
+  business_type String
+  status        Status    @default(ACTIVE)
+  Transaction   Transaction[]
+
+  @@index([status])
+}
+
+model Transaction {
+  id            Int      @id @default(autoincrement())
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  user_id       Int
+  user          User?     @relation(fields: [user_id], references: [id])
+  merchant_id   Int
+  merchant      Merchant? @relation(fields: [merchant_id], references: [id])
+  type_code     String
+  debit         Decimal?
+  credit        Decimal?
+  balance       Decimal?
+  txn_id        String
+  txn_datetime  DateTime
+  txn_status    TxnStatus @default(PENDING)
+  remark        String?
+
+  @@index([user_id])
+  @@index([merchant_id])
+  @@index([type_code])
+  @@index([txn_id])
+}
+
+enum Status {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum TxnStatus {
+  PENDING
+  FAILED
+  COMPLETED
+}
